@@ -91,13 +91,18 @@ io.on('connection', (socket) => {   console.log('player connected');
 
         if (data.vidReady) {
             const IdFirstClient = joinedRoom[0].roomAttendees[0].socketId
+            
             if (joinedRoom[0].roomAttendees.length > 1) {
+                socket.broadcast.to(socket.id).emit('testroom', { loadVideoById: joinedRoom[0].video.id })
                 socket.broadcast.to(IdFirstClient).emit('testroom', { sendVidTime: socket.id });
             }
         }
         if (data.seek) {
-            console.log(data.seek);
             io.to(data.seek.socketId).emit('testroom', { seekTo: data.seek.time });
+        }
+
+        if (data.onBarChange) {
+            io.emit('testroom', { barChanged: data.onBarChange })
         }
     })
 
