@@ -2,7 +2,8 @@ const mongoose = require('mongoose')
 
 mongoose.connect('mongodb+srv://node:node@kwatch.javeg.mongodb.net/kwatch?retryWrites=true&w=majority', {
     useNewUrlParser: true,
-    useUnifiedTopology: true
+    useUnifiedTopology: true,
+    useFindAndModify: false
 });
 
 const db = mongoose.connection;

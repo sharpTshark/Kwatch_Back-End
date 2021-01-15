@@ -36,21 +36,26 @@ app.get('/rooms/:roomId', (req, res) => {
     const roomId = req.params.roomId
     rooms.findOne({ roomId: roomId})
         .then(room = (room) => {
-            res.send({
-                valid: true,
-                settings: {
-                    roomId: room.roomId,
-                    roomName: room.roomName,
-                    roomAdmin: room.roomAdmin
-                }
-            })
+            if (room) {
+                res.send({
+                    valid: true,
+                    settings: {
+                        roomId: room.roomId,
+                        roomName: room.roomName,
+                        roomAdmin: room.roomAdmin
+                    },
+                    queue: room.queue
+                })
+            } else res.send({ valid: false })
         })
-        .catch(err = (err) => console.log(err))
+        .catch(err = (err) => {
+            console.log(err)
+        })
 })
 
 app.post('/findvideo', (req, res) => {
     let items = []
-    axios   .get('https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=20&q='+req.body.search+'&type=video&key=AIzaSyAzMA7AOmfA1UGD071bXqmC4ZkRR4FTdHk')
+    axios   .get('https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=50&q='+req.body.search+'&type=video&key=AIzaSyAzMA7AOmfA1UGD071bXqmC4ZkRR4FTdHk')
             .then(result => {
                 result.data.items.forEach(item => {
                         items.push(item)
@@ -59,9 +64,6 @@ app.post('/findvideo', (req, res) => {
             })
             .catch(err => console.log(err))
 })
-
-
-
 
 
 // socket handles
@@ -81,38 +83,55 @@ io.on('connection', (socket) => {   console.log('player connected');
     // the player is placed in his active room
     attachToRoom(joinedRoom, activeRooms, socket)
 
+    // update the room queue
+    app.post('/addToQueue', (req, res) => {
+        rooms.findOneAndUpdate({ roomId: req.body.roomId }, { $push: { queue: req.body.video  } },
+        (error, success) => {
+            if (error) console.log(error)
+            else {                
+                rooms.findOne({ roomId: req.body.roomId})
+                    .then(room = (room) => {
+                        if (room) io.emit(req.body.roomId, { queueUpdate: room.queue })
+                        else res.send({ valid: false })
+                    })
+                    .catch(err = (err) => { console.log(err) })
+            }
+        });
+        res.send('queue done')
+    })
+
     // when there is any data transmitted
-    socket.on('testroom', (data) => {
+    socket.on(roomId, (data) => {
         joinedRoom = activeRooms.filter(obj => obj.roomId === roomId)
 
-        handleOnlineUsers(data, joinedRoom[0], io)     
-        videoController(data, joinedRoom[0], io)
-        loadVideo(data, joinedRoom[0], io)
+        handleOnlineUsers(data, joinedRoom[0], io, roomId)     
+        videoController(data, joinedRoom[0], io, roomId)
+        loadVideo(data, joinedRoom[0], io, roomId)
 
         if (data.vidReady) {
             const IdFirstClient = joinedRoom[0].roomAttendees[0].socketId
             
             if (joinedRoom[0].roomAttendees.length > 1) {
-                socket.broadcast.to(socket.id).emit('testroom', { loadVideoById: joinedRoom[0].video.id })
-                socket.broadcast.to(IdFirstClient).emit('testroom', { sendVidTime: socket.id });
+                socket.broadcast.to(socket.id).emit(roomId, { loadVideoById: joinedRoom[0].video.id })
+                socket.broadcast.to(IdFirstClient).emit(roomId, { sendVidTime: socket.id });
             }
         }
         if (data.seek) {
-            io.to(data.seek.socketId).emit('testroom', { seekTo: data.seek.time });
+            io.to(data.seek.socketId).emit(roomId, { seekTo: data.seek.time });
         }
 
         if (data.onBarChange) {
-            io.emit('testroom', { barChanged: data.onBarChange })
+            io.emit(roomId, { barChanged: data.onBarChange })
         }
     })
 
     joinedRoom = activeRooms.filter(obj => obj.roomId === roomId)
-    io.emit('testroom', { roomInfo: joinedRoom[0] })
+    io.emit(roomId, { roomInfo: joinedRoom[0] })
 
     console.log(activeRooms);
 
     socket.on('disconnect', () => {
-        discRoom(joinedRoom[0], activeRooms, roomId, io)
+        discRoom(joinedRoom[0], activeRooms, roomId, io, roomId)
     })
 })
 // disconnect fixen

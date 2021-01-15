@@ -4,7 +4,8 @@ const createRoom = (req, res) => {
     const room = {
         roomId: '_' + Math.random().toString(36).substr(2, 9),
         roomName: req.body.roomName,
-        roomAdmin: req.body.roomAdmin
+        roomAdmin: req.body.roomAdmin,
+        queue: []
     }
 
     //create room with the choosen settings
@@ -19,7 +20,8 @@ const createRoom = (req, res) => {
                     roomId: room.roomId,
                     roomName: room.roomName,
                     roomAdmin: room.roomAdmin
-                }
+                },
+                queue: room.queue
             })
 
             console.log(result)

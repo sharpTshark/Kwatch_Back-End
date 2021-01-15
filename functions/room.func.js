@@ -17,7 +17,7 @@ const attachToRoom = (room, activeRooms, socket) => {
     }
 }
 
-const discRoom = (room, activeRooms, id, io) => {
+const discRoom = (room, activeRooms, id, io, roomId) => {
     if (room.roomAttendees.length === 1) {
         activeRooms.forEach((activeRoom, key) => {
             if (activeRoom.roomId === id) {
@@ -27,8 +27,7 @@ const discRoom = (room, activeRooms, id, io) => {
         });
     } else {
         console.log('disconnected')
-        io.emit('testroom', { online: 'send back message to check whos still online' })
-        console.log(activeRooms);
+        io.emit(roomId, { online: 'send back message to check whos still online' })
     }
 }
 

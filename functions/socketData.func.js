@@ -1,6 +1,6 @@
 let onlineUsers = []
 
-const handleOnlineUsers = (data, room, io) => {
+const handleOnlineUsers = (data, room, io, roomId) => {
     if (data.isOnline) {
         console.log(data.isOnline);
 
@@ -12,7 +12,7 @@ const handleOnlineUsers = (data, room, io) => {
         console.log(roomAttendees.length);
         
         if (onlineUsers.length + 1 === roomAttendees.length) {
-            io.emit('testroom', { roomUpdate: onlineUsers })
+            io.emit(roomId, { roomUpdate: onlineUsers })
             room.roomAttendees = onlineUsers
             onlineUsers = []
             // if this is the last player, remove the room from active rooms when he leaves
@@ -22,23 +22,23 @@ const handleOnlineUsers = (data, room, io) => {
     }  
 }
 
-const videoController = (data, room, io) => {
+const videoController = (data, room, io, roomId) => {
     if (data.onStateChange) {
         if (data.onStateChange == 5 || data.onStateChange == 2 || data.onStateChange == -1) {
-            io.emit('testroom', { playVideo: true })
+            io.emit(roomId, { playVideo: true })
             room.video.paused = false
         } else if (data.onStateChange == 1) {
-            io.emit('testroom', { pauseVideo: true })
+            io.emit(roomId, { pauseVideo: true })
             room.video.paused = true
         }
     }
 }
 
-const loadVideo = (data, room, io) => {
+const loadVideo = (data, room, io, roomId) => {
     if (data.loadVid) {
         room.video.id = data.loadVid
         room.video.paused = false
-        io.emit('testroom', { loadVideoById: data.loadVid })
+        io.emit(roomId, { loadVideoById: data.loadVid })
     }
 }
 

@@ -12,6 +12,9 @@ let room = new roomSchema(
         },
         roomAdmin: {
             type: String
+        },
+        queue: {
+            type: Array
         }
     },
     { collection: "room" }
@@ -19,27 +22,3 @@ let room = new roomSchema(
 
 
 module.exports = mongoose.model("room", room);
-
-
-
-
-// const mongoose = require("mongoose");
-
-// const Schema = mongoose.Schema;
-
-// let employee = new Schema(
-//   {
-//     name: {
-//       type: String
-//     },
-//     age: {
-//       type: Number
-//     },
-//     location: {
-//       type: String
-//     }
-//   },
-//   { collection: "Employees" }
-// );
-
-// module.exports = mongoose.model("employees", employee);
