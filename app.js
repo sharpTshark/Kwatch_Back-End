@@ -14,6 +14,7 @@ const { createRoom } = require('./database/queries')
 // require and using middleware
 const cors = require('cors')
 const bodyparser = require('body-parser')
+
 app.use(cors())
 app.use(bodyparser.json())
 
@@ -125,6 +126,10 @@ io.on('connection', socket => {
 		res.send('queue done')
 	})
 
+	app.post('/delQueueItem', (req, res) => {
+		const id = req.body.id
+	})
+
 	// when there is any data transmitted
 	socket.on(roomId, data => {
 		joinedRoom = activeRooms.filter(obj => obj.roomId === roomId)
@@ -151,6 +156,30 @@ io.on('connection', socket => {
 
 		if (data.onBarChange) {
 			io.emit(roomId, { barChanged: data.onBarChange })
+		}
+
+		if (data.delQueueItem) {
+			const id = data.delQueueItem
+
+			rooms.findOne({ roomId: roomId }, (err, doc) => {
+				if (err) console.log(err)
+				else {
+					let queue = doc.queue
+					const ids = queue.map(q => q.id)
+
+					const index = ids.indexOf(id)
+
+					queue.splice(index, 1)
+
+					doc.queue = queue
+
+					doc.save(err => {
+						console.log(err)
+					})
+
+					io.emit(roomId, { queueUpdate: doc.queue })
+				}
+			})
 		}
 	})
 
