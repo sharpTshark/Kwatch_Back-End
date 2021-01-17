@@ -187,6 +187,10 @@ io.on('connection', socket => {
 				if (err) console.log(err)
 				else {
 					const newVid = Math.floor(Math.random() * doc.queue.length)
+
+					joinedRoom[0].video.id = doc.queue[newVid].id
+					joinedRoom[0].video.paused = false
+
 					io.emit(roomId, { loadVideoById: doc.queue[newVid].id })
 				}
 			})
