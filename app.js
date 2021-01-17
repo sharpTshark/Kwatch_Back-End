@@ -181,6 +181,16 @@ io.on('connection', socket => {
 				}
 			})
 		}
+
+		if (data.vidEnded) {
+			rooms.findOne({ roomId: roomId }, (err, doc) => {
+				if (err) console.log(err)
+				else {
+					const newVid = Math.floor(Math.random() * doc.queue.length)
+					io.emit(roomId, { loadVideoById: doc.queue[newVid].id })
+				}
+			})
+		}
 	})
 
 	joinedRoom = activeRooms.filter(obj => obj.roomId === roomId)
