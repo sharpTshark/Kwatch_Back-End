@@ -186,12 +186,14 @@ io.on('connection', socket => {
 			rooms.findOne({ roomId: roomId }, (err, doc) => {
 				if (err) console.log(err)
 				else {
-					const newVid = Math.floor(Math.random() * doc.queue.length)
+					if (doc.queue.length > 0) {
+						const newVid = Math.floor(Math.random() * doc.queue.length)
 
-					joinedRoom[0].video.id = doc.queue[newVid].id
-					joinedRoom[0].video.paused = false
+						joinedRoom[0].video.id = doc.queue[newVid].id
+						joinedRoom[0].video.paused = false
 
-					io.emit(roomId, { loadVideoById: doc.queue[newVid].id })
+						io.emit(roomId, { loadVideoById: doc.queue[newVid].id })
+					}
 				}
 			})
 		}
